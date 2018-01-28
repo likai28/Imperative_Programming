@@ -1,0 +1,51 @@
+//This file is used to rotate the image and create four duplicated images with
+//different angles.
+
+pixel [] rotate(pixel [] pixels, int width, int height)
+//@requires is_valid_imagesize(width, height);
+//@requires \length(pixels)==width*height;
+//@requires width==height;
+//@ensures \length(\result)==(width+height)*(width+height);
+//@ensures \result!=pixels;
+{
+  int output_length = (width+height)*(width+height);
+  pixel [] output=alloc_array(pixel,output_length);
+  //Use m to simplify the simbol of width=height
+  int m=width;
+  //Assign pixel values to left-top section
+  int i;
+  int j;
+  for (i=m-1; i>=0; i--)
+  {
+     for (j=0; j<m; j++)
+     {
+        output[get_index(i,j,2*m,2*m)]=pixels[get_index(j,(m-1-i),m,m)];
+     }
+  }
+  //Assign pixel values to right-top section
+  for (i=m; i<2*m; i++)
+  {
+     for (j=0; j<m; j++)
+     {
+        output[get_index(j,i,2*m,2*m)]=pixels[get_index(j,(i-m),m,m)];
+     }
+  }
+  //Assign pixel values to left-bottom section
+  for (i=m-1; i>=0; i--)
+  {
+     for(j=2*m-1; j>=m; j--)
+     {
+       output[get_index(j,i,2*m,2*m)]=pixels[get_index((2*m-1-j),(m-1-i),m,m)];
+     }
+  }
+  //Assign pixel values to right-bottom section
+  for (i=m; i<2*m; i++)
+  {
+    for (j=2*m-1; j>=m; j--)
+    {
+      output[get_index(i,j,2*m,2*m)]=pixels[get_index((2*m-1-j),(i-m),m,m)];
+    }
+  }
+  return output;
+}
+

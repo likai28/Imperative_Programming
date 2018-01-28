@@ -1,0 +1,39 @@
+//This file is used for creative manipulation of g5.png image
+
+int result_width(int width, int height)
+//@requires is_valid_imagesize(width,height);
+{
+  return width;
+}
+
+int result_height(int width, int height)
+//@requires is_valid_imagesize(width,height);
+{
+  return height;
+}
+
+pixel [] manipulate(pixel [] pixels, int width, int height)
+//@requires is_valid_imagesize(width,height);
+//@requires \length(pixels)>0;
+//@ensures \result!=pixels;
+{
+  int pix_length = width*height;
+  pixel [] pixel_manipulate = alloc_array(pixel, pix_length);
+  for (int i=0; i<pix_length; i++)
+  {
+    int sum_pixel=get_red(pixels[i])+get_green(pixels[i])+get_blue(pixels[i]);
+    if (get_red(pixels[i])>80 &&get_green(pixels[i])<50)
+    {
+      pixel_manipulate[i]=make_pixel(get_alpha(pixels[i]),0,255,0);
+    }
+    else if (sum_pixel>380 && get_red(pixels[i])>30 && i<250000)
+    {
+      pixel_manipulate[i]=make_pixel(get_alpha(pixels[i]),0,0,255);
+    }
+    else {
+      pixel_manipulate[i]=pixels[i];
+    }
+  }
+
+  return pixel_manipulate;
+}

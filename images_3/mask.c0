@@ -1,0 +1,76 @@
+//This file is used for applying mask onto a image
+
+int [] apply_mask(pixel[]pixels,int width,int height,int[]mask,int maskwidth)
+//@requires is_valid_imagesize(width, height);
+//@requires \length(pixels)>0 && \length(pixels)==width*height;
+//@requires \length(mask)>0 && maskwidth%2==1;
+//@ensures \length(\result)==\length(pixels);
+{
+  int pixel_num = width*height;
+  int [] pixel_value = alloc_array(int, pixel_num);
+  //Get the average pixel value of each pixel
+  int temp_sum=0;
+  for (int i=0; i<pixel_num; i++)
+  {
+    temp_sum=get_red(pixels[i])+get_green(pixels[i])+get_blue(pixels[i]);
+    pixel_value[i]=(temp_sum)/3;
+  }
+  //Build extended pixels of value 0 around existed pixels
+  int extended_width = (maskwidth-1)/2;
+  int extended_height = (maskwidth-1)/2;
+  int bigger_width = width+2*extended_width;
+  int bigger_height = height+2*extended_height;
+  int bigger_pixel_num = bigger_width*bigger_height;
+  int [] bigger_pixels =alloc_array(int, bigger_pixel_num);
+  //Initialize bigger_pixels to 0
+  for (int i=0; i<bigger_pixel_num; i++)
+  {
+    bigger_pixels[i]=0;
+  }
+  //Replace the pixel values inside the bigger_pixels with image's pixel value
+  int bigger_index=0;
+  int pixel_index=0;
+  for (int i=(0+extended_width); i<(bigger_width-extended_width); i++)
+  {
+    for (int j=(0+extended_height); j<(bigger_height-extended_height); j++)
+    {
+      bigger_index=get_index(j,i,bigger_width,bigger_height);
+      pixel_index=get_index(j-extended_height,i-extended_width,width,height);
+      bigger_pixels[bigger_index]=pixel_value[pixel_index];
+    }
+  }
+
+  int [] pixel_after = alloc_array(int, pixel_num);
+  //Initialize pixel_applied_mask to be all zero
+  for (int i=0;i<pixel_num;i++)
+  {
+    pixel_after[i]=0;
+  }
+
+  //Start to compute mask onto the whole bigger pixels
+  int pix_index=0;
+  int mask_index=0;
+  int mask_row=0;
+  int mask_col=0;
+  for (int i=(0+extended_width); i<(bigger_width-extended_width); i++)
+  {
+    for (int j=(0+extended_height); j<(bigger_height-extended_height); j++)
+    {
+      for (int m=i-extended_width; m<=i+extended_width; m++)
+      {
+        for (int n=j-extended_height; n<=j+extended_height; n++)
+        {
+
+          pix_index=get_index(j-extended_height,i-extended_width,width,height);
+          bigger_index=get_index(n,m,bigger_width,bigger_height);
+          mask_row=n-(j-extended_height);
+          mask_col=m-(i-extended_width);
+          mask_index=get_index(mask_row,mask_col,maskwidth,maskwidth);
+          pixel_after[pix_index]+=bigger_pixels[bigger_index]*mask[mask_index];
+        }
+      }
+    }
+  }
+  return pixel_after;
+
+}
