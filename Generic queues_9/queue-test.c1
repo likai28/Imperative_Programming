@@ -1,0 +1,140 @@
+#use <conio>
+#use <util>
+//This file is used for testing queue
+int main()
+{
+    //test queue_new()
+    queue_t Q = queue_new();
+    assert(is_queue(Q));
+    //test queue_size()
+    assert(queue_size(Q)==0);
+
+    //test enq()
+    int* i1 = alloc(int);
+    *i1 = 10;
+    enq(Q,(void*)i1);
+    int* i2 = alloc(int);
+    *i2 =20;
+    enq(Q,(void*)i2);
+    assert(is_queue(Q));
+    assert(queue_size(Q)==2);
+
+    //test queue_peek()
+    assert(queue_peek(Q,0)==(void*)i1);
+    assert(queue_peek(Q,1)==(void*)i2);
+
+    //test deq()
+    int* res = (int*)(deq(Q));
+    assert(*res ==10);
+    int* res2 = (int*)(deq(Q));
+    assert(*res2 ==20);
+
+    assert(is_queue(Q));
+    assert(queue_size(Q)==0);
+
+    //test queue_reverse()
+    enq(Q,(void*)i1);
+    enq(Q,(void*)i2);
+    assert(queue_peek(Q,0)==(void*)i1);
+    assert(queue_peek(Q,1)==(void*)i2);
+    queue_reverse(Q);
+    assert(queue_peek(Q,0)==(void*)i2);
+    assert(queue_peek(Q,1)==(void*)i1);
+
+    res = (int*)deq(Q);
+    res2 = (int*)deq(Q);
+    assert(queue_size(Q)==0);
+
+    //test queue_all_1
+    int* c1 = NULL;
+    int* c2 = alloc(int);
+    *c2 = 4;
+    enq(Q,(void*)c1);
+    enq(Q,(void*)c2);
+    assert(queue_all(Q,&even)==false);
+    c1 = alloc(int);
+    *c1 = 6;
+    deq(Q);
+    deq(Q);
+    enq(Q,(void*)c1);
+    enq(Q,(void*)c2);
+    assert(queue_all(Q,&even)==true);
+
+    //test queue_all_2
+    assert(queue_all(Q,&odd)==false);
+    int* c3 = NULL;
+    int* c4 = NULL;
+    queue_t Q2 = queue_new();
+    enq(Q2,(void*)c3);
+    enq(Q2,(void*)c4);
+    assert(queue_all(Q2,&odd)==true);
+    deq(Q2);
+    deq(Q2);
+    c3 = alloc(int);
+    c4 = alloc(int);
+    *c3 = 7;
+    *c4 = 9;
+    enq(Q2,(void*)c3);
+    enq(Q2,(void*)c4);
+    assert(queue_all(Q2,&odd)==true);
+    int* c5 = alloc(int);
+    *c5 = 8;
+    enq(Q2,(void*)c5);
+    assert(queue_all(Q2,&odd)==false);
+
+    //test queue_all_3
+    int* c6 = alloc(int);
+    int* c7 = alloc(int);
+    c6 = NULL;
+    c7 = NULL;
+    enq(Q2,(void*)c6);
+    enq(Q2,(void*)c7);
+    assert(queue_all(Q2,&incr)==true);
+    assert(*((int*)(queue_peek(Q2,0)))==8);
+    assert(*(int*)(queue_peek(Q2,1))==10);
+    assert(*(int*)(queue_peek(Q2,2))==9);
+    assert(queue_peek(Q2,3)==NULL);
+    assert(queue_peek(Q2,4)==NULL);
+
+
+    //test queue_iterate_1
+    queue_t Q3 = queue_new();
+    assert(queue_iterate(Q3,NULL,&find_negative)==NULL);
+    int* k1 = alloc(int);
+    int* k2 = alloc(int);
+    *k1 = 1;
+    *k2 = 2;
+    enq(Q3,(void*)k1);
+    enq(Q3,(void*)k2);
+    assert(queue_iterate(Q3,NULL,&find_negative)==NULL);
+    int* k3 = alloc(int);
+    int* k4 = alloc(int);
+    int* k5 =alloc(int);
+    *k3 = -1;
+    *k4 = 3;
+    *k5 = -2;
+    enq(Q3,(void*)k3);
+    enq(Q3,(void*)k4);
+    enq(Q3,(void*)k5);
+    assert(queue_iterate(Q3,NULL,&find_negative)==(void*)k3);
+
+    //test queue_iterate_2
+    queue_t Q_copy = (queue_t)(queue_iterate(Q3,(void*)queue_new(),&copy));
+    assert(*(int*)(queue_peek(Q_copy,0))==1);
+    assert(*(int*)(queue_peek(Q_copy,1))==2);
+    assert(*(int*)(queue_peek(Q_copy,2))==-1);
+    assert(*(int*)(queue_peek(Q_copy,3))==3);
+    assert(*(int*)(queue_peek(Q_copy,4))==-2);
+
+    //test queue_iterate_3
+    int* t1 = alloc(int);
+    *t1 = 10;
+    assert(queue_iterate(Q3,(void*)t1,&insert)==(void*)t1);
+    int* t2 = alloc(int);
+    *t2 = 1;
+    assert(*(int*)(queue_iterate(Q3,(void*)t2,&insert))==3);
+
+    println("All tests pass!");
+    return 0;
+
+}

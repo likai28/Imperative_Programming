@@ -1,0 +1,66 @@
+//This file is used to build functions that can be passed to other file
+
+bool even(void* x)
+//@requires x==NULL||\hastag(int*,x);
+{
+    //int* data = (int*)x;
+    return (int*)x!=NULL&&(*(int*)x>=0)&&(*(int*)x%2==0);
+}
+
+bool odd(void* x)
+//@requires x==NULL||\hastag(int*,x);
+{
+    int* data =(int*)x;
+    return data==NULL||((*data>0)&&(*data%2==1));
+}
+
+bool incr(void* x)
+//@requires x==NULL||\hastag(int*,x);
+{
+    int* data =(int*)x;
+    if(data!=NULL)
+    {
+        *data = *data+1;
+    }
+    return true;
+}
+
+void* find_negative(void* accum, void* x)
+//@requires x==NULL||\hastag(int*,x);
+//@requires accum==NULL||\hastag(int*,accum);
+//@ensures \hastag(int*,\result);
+{
+    if(accum!=NULL)
+        return accum;
+    if(x==NULL||*(int*)x>=0)
+        return NULL;
+    //if(*(int*)x<0)
+    else
+        return x;
+
+}
+
+void* copy(void* accum, void* x)
+//@requires x==NULL||\hastag(int*,x);
+//@ensures \hastag(queue_t,\result);
+{
+    enq((queue_t)accum,x);
+    return accum;
+}
+
+void* insert(void* accum, void* x)
+//@requires accum!=NULL &&\hastag(int*,accum);
+//@requires x!= NULL && \hastag(int*, x);
+{
+    if(*(int*)accum>=*(int*)x)
+        return accum;
+    else
+    {
+        int tmp =*(int*)accum;
+        int* c_accum =(int*)accum;
+        int* c_x = (int*)x;
+        *c_accum =*c_x;
+        *c_x = tmp;
+        return accum;
+    }
+}
