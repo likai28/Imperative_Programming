@@ -1,0 +1,129 @@
+#use <conio>
+#use <string>
+#use <parse>
+
+bool is_precstack(dict_t D, stack_t S)
+//@requires D!=NULL && S!=NULL;
+{
+    stack_t S1 = stack_new();
+    // Get the top element
+    string tok = pop(S);
+    int prec = dict_lookup(D, tok);
+    if (prec==-1) return false;
+    push(S1,tok);
+    int prev_prec = prec;
+    // Get the following element
+    while (!stack_empty(S))
+    {
+        tok = pop(S);
+        prec = dict_lookup(D,tok);
+        if(prec>=prev_prec||prec==-1) return false;
+        else
+        {
+            prev_prec = prec;
+            push(S1,tok);
+        }
+    }
+    while(!stack_empty(S1))
+    {
+        assert(stack_empty(S)==true);
+        push(S,pop(S1));
+    }
+    return true;
+}
+
+
+//This func implemented transformation from exp to clac
+queue_t parse(dict_t D,queue_t input)
+//@requires D!=NULL && input!=NULL;
+//@ensures \result ==NULL || queue_empty(input);
+{
+    //check whether the input is valid exp
+
+    //Check empty
+    if(queue_empty(input)==true) return NULL;
+    //Check valid operators
+    queue_t temp = queue_new();
+    while(!queue_empty(input))
+    {
+        string tok = deq(input);
+        if(parse_int(tok,10)==NULL&&dict_lookup(D,tok)==-1) return NULL;
+        enq(temp,tok);
+    }
+    while(!queue_empty(temp))
+    {
+        enq(input,deq(temp));
+    }
+    //Check the sequence of exp expression
+    int order = 0;
+    while(!queue_empty(input))
+    {
+        string tok = deq(input);
+        if(order%2==0 && parse_int(tok,10)==NULL) return NULL;
+        if(order%2==1 && parse_int(tok,10)!=NULL) return NULL;
+        enq(temp,tok);
+        order=order+1;
+    }
+    while (!queue_empty(temp))
+    {
+        enq(input,deq(temp));
+    }
+
+    //Start from integer phase
+    queue_t output = queue_new();
+    stack_t operator = stack_new();
+
+    while(!queue_empty(input))
+    {
+        string element = deq(input);
+        //Integer phase
+        if(parse_int(element,10)!=NULL)
+        {
+            enq(output,element);
+        }
+        //Operator phase
+        else
+        {
+            if(stack_empty(operator)==true) push(operator,element);
+            else
+            {   //Compare the prece of top on stack and the element in input
+                string top = pop(operator);
+                if(dict_lookup(D,top)<dict_lookup(D,element))
+                {
+                    push(operator,top);
+                    push(operator,element);
+                }
+                else
+                {
+                    string top_element = top;
+                    enq(output,top_element);
+
+                    stack_t remain = stack_new();
+                    while(!stack_empty(operator))
+                    {
+                        top_element = pop(operator);
+                        if(dict_lookup(D,top_element)>=dict_lookup(D,element))
+                        {
+                            enq(output,top_element);
+                        }
+                        else
+                        {
+                            push(remain,top_element);
+                        }
+                    }
+                    while(!stack_empty(remain))
+                    {
+                        push(operator,pop(remain));
+                    }
+                    //Push the element that strictly bigger than top of stack
+                    push(operator,element);
+                }
+
+            }
+        }
+
+    }
+    while(!stack_empty(operator)) enq(output,pop(operator));
+    return output;
+}
+

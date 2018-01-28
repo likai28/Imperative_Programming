@@ -1,0 +1,76 @@
+// This file contains the eval function
+#use <conio>
+#use <string>
+#use <parse>
+#use <util>
+
+int POW(int b, int e)
+//@requires e >= 0;
+{
+   if (e == 0) {
+     return 1;
+   } else {
+     return b * POW(b,e-1);
+   }
+}
+
+
+void eval(istack_t S, queue_t Q)
+//@requires S!=NULL && Q!=NULL;
+//@ensures queue_empty(Q);
+{
+    while (!queue_empty(Q))
+    {
+        string tok = deq(Q);
+        if (parse_int(tok,10)!=NULL)
+        {   //This tok is number
+            ipush(S,*parse_int(tok,10));
+        }
+        else//This tok is operand
+        {
+            //Check whether the istack is empty
+            if(istack_empty(S))
+            {
+                error("Wrong input token string");
+            }
+            int result=0;
+            int x = ipop(S);
+            //check whether the stack is empty
+            if(istack_empty(S))
+            {
+                error("Wrong input token string");
+            }
+            int x_next = ipop(S);
+            //Judge which operand it is
+            if (string_compare(tok,"+")==0) result = x+x_next;
+            else if(string_compare(tok,"-")==0)result = x_next-x;
+            else if(string_compare(tok,"*")==0)result = x_next*x;
+            else if(string_compare(tok,"/")==0)
+            {
+                if(x==0|| (x_next==int_min() &&x==-1)) error("x/y is wrong");
+                else
+                {
+                    result = x_next/x;
+                }
+            }
+            else if(string_compare(tok,"**")==0)
+            {
+                if(x<0) error("x**y is wrong");
+                else
+                {
+                    result = POW(x_next,x);
+                }
+
+            }
+            else
+            {
+                error("Wrong operand");
+            }
+            ipush(S, result);
+        }
+
+
+    }
+
+}
+

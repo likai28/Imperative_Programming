@@ -1,0 +1,90 @@
+/*
+ * Interface for dictionaries
+ *
+ * 15-122 Principles of Imperative Computation
+ */
+
+#use <string>
+#use <conio>
+#use <parse>
+/* Interface to dictionaries (leave this alone) */
+
+// typedef ______* dict_t;
+typedef struct dict_header* dict_t;
+
+// Returns NULL if the input array has the same operator twice
+dict_t dict_new(string[] A, int n)
+  /*@requires \length(A) == n; @*/
+  /*@requires is_infix_array(A, n); @*/ ;
+
+// Returns -1 if no definition is found
+int dict_lookup(dict_t D, string oper)
+  /*@requires D != NULL; @*/
+  /*@ensures \result >= -1; @*/ ;
+
+/* Implementation to dictionaries should go here (implement this) */
+
+struct dict_header{
+    int length;
+    string [] tokens_list;
+};
+typedef struct dict_header dict;
+dict* dict_new(string[] A, int n)
+//@requires \length(A) ==n;
+//@requires is_infix_array(A,n);
+{
+    struct dict_header* D =alloc(struct dict_header);
+    D->length = n;
+    D->tokens_list = A;
+    //build a string that contain the whole strings
+    string whole_str="";
+    for (int p=0;p<n;p++)
+    {
+        whole_str = string_join(whole_str," ");
+        whole_str = string_join(whole_str,A[p]);
+    }
+    for (int i =0;i<n;i++)
+    //@loop_invariant 0<=i && i<=n;
+    {
+        string s = D->tokens_list[i];
+        int toks = num_tokens(s);
+        string [] B = parse_tokens(s);
+        for (int j =0;j<toks; j++)
+        //@loop_invariant 0<=j && j<=n;
+        {
+            string tok_to_check =B[j];
+            int count =0;
+            int toks2 = num_tokens(whole_str);
+            string [] C = parse_tokens(whole_str);
+
+            for (int k=0;k<toks2;k++)
+            {
+                if(string_compare(tok_to_check,C[k])==0) count=count+1;
+            }
+            if (count>1) return NULL;
+        }
+
+    }
+    return D;
+}
+int dict_lookup(dict* D, string oper)
+//@requires D!=NULL;
+//@ensures \result >= -1;
+{
+    int n = D->length;
+    for (int i = 0; i<n; i++)
+    //@loop_invariant 0<=i && i<=n;
+    {
+        string s = D->tokens_list[i];
+        int toks = num_tokens(s);
+        string [] A = parse_tokens(s);
+        for (int j=0;j<toks;j++)
+        {
+            string tok = A[j];
+            if (string_compare(tok,oper)==0) return i;
+        }
+
+    }
+    return -1;
+
+}
