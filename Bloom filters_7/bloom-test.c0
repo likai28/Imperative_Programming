@@ -1,0 +1,107 @@
+//This file is used to test the bloom-filter's performance
+#use <conio>
+
+int main()
+{
+    int score =100;
+    int table_size = 3;
+
+    assert(table_size==3);
+    bloom_t B = bloom_new(table_size);
+    assert(B!=NULL);
+    bloom_add(B,"likai");
+    assert(B!=NULL);
+
+    //if it says not contained, but actually contained, wrong!
+    if(!bloom_contains(B,"likai"))
+    {
+        assert(false);
+    }
+    assert(B!=NULL);
+    bloom_add(B,"is");
+    assert(B!=NULL);
+
+    if(!bloom_contains(B,"is"))
+    {
+        assert(false);
+    }
+    if(!bloom_contains(B,"likai"))
+    {
+        assert(false);
+    }
+    assert(B!=NULL);
+    bloom_add(B,"handsome");
+    assert(B!=NULL);
+
+    if(!bloom_contains(B,"handsome"))
+    {
+        assert(false);
+    }
+    assert(B!=NULL);
+    bloom_add(B,"indeed");
+    bloom_add(B,"without");
+    bloom_add(B,"doubt");
+    assert(B!=NULL);
+    if(!bloom_contains(B,"indeed")) assert(false);
+    bloom_add(B,"indeed");
+    if(!bloom_contains(B,"indeed")) assert(false);
+    if(!bloom_contains(B,"without")) assert(false);
+    if(!bloom_contains(B,"doubt")) assert(false);
+    if(!bloom_contains(B,"likai")) assert(false);
+    if(!bloom_contains(B,"is")) assert(false);
+    if(!bloom_contains(B,"handsome")) assert(false);
+    bloom_add(B,"Jun");
+    bloom_add(B,"is");
+    bloom_add(B,"beautiful");
+    if(!bloom_contains(B,"Jun")) assert(false);
+    if(!bloom_contains(B,"is")) assert(false);
+    if(!bloom_contains(B,"beautiful")) assert(false);
+    assert(table_size==3);
+
+    assert(B!=NULL);
+
+
+    println("The bloom's implementation is correct");
+    int count =0;
+    if(bloom_contains(B,"fwe")) count+=1;
+    if(bloom_contains(B,"113")) count+=1;
+    if(bloom_contains(B,"")) count+=1;
+    if(bloom_contains(B," ")) count+=1;
+    if(bloom_contains(B,"lika")) count+=1;
+    if(bloom_contains(B,"likaiis")) count+=1;
+    if(bloom_contains(B,"likai is")) count+=1;
+    if(bloom_contains(B,"1")) count+=1;
+    if(bloom_contains(B,"abc")) count+=1;
+    if(bloom_contains(B,"i")) count+=1;
+    if(bloom_contains(B,",")) count+=1;
+    if(bloom_contains(B,"!")) count+=1;
+    if(bloom_contains(B,"zbjbkfber")) count+=1;
+    if(bloom_contains(B,"8dfw")) count+=1;
+    if(bloom_contains(B,"likaii")) count+=1;
+    if(bloom_contains(B,"jun")) count+=1;
+    if(bloom_contains(B,"Junis")) count+=1;
+    if(bloom_contains(B,"bea")) count+=1;
+    if(bloom_contains(B,"doub")) count+=1;
+    if(bloom_contains(B,"t")) count+=1;
+    if(bloom_contains(B,"a")) count+=1;
+    if(bloom_contains(B,"#")) count+=1;
+    if(bloom_contains(B,"e")) count+=1;
+    if(bloom_contains(B,"handso")) count+=1;
+    if(bloom_contains(B,"likai2")) count+=1;
+    if(count>10) score =0;
+    else if(count==0) score =100;
+    else
+    {
+        score = score-4*count;
+
+    }
+    println("The score for this implementation is: ");
+    println("");
+
+    return score;
+
+
+
+
+}
+
