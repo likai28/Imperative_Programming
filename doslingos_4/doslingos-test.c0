@@ -1,0 +1,55 @@
+#use <string>
+#use <conio>
+#use <util>
+#use <parse>
+
+int main()
+{
+
+//First test the count_vocab(...) function
+
+  string corpus ="texts/scott_tweet.txt";
+  string [] A = parse_tokens("dear great his in is kai love mother of");
+  int [] freq =alloc_array(int, 9);
+  freq[0]=1;
+  freq[1]=1;
+  freq[2]=3;
+  freq[3]=2;
+  freq[4]=5;
+  freq[5]=9;
+  freq[6]=3;
+  freq[7]=1;
+  freq[8]=17;
+  int not_found = count_vocab(A,freq,9,corpus,true);
+  assert(not_found ==3);
+  assert(freq[0]==1&& freq[1]==1 && freq[2]==4 && freq[3]==2);
+  assert(freq[4]==6&& freq[5]==9&& freq[6]==3 && freq[7]==1 && freq[8]==18);
+
+  string [] B = parse_tokens("abd bdg drf");
+  int [] freq2 =alloc_array(int,3);
+  freq2[0]=3;
+  freq2[1]=1;
+  freq2[2]=2;
+  not_found = count_vocab(B,freq2,3,corpus,false);
+  assert(not_found ==6);
+  assert(freq2[0]==3 && freq2[1]==1&& freq2[2]==2);
+
+//Secondly test the sort_by_freq(...) function
+  sort_by_freq(A, freq, 9);
+  assert(freq[0]==1 && freq[1]==1&& freq[2]==1&& freq[3]==2&& freq[4]==3);
+  assert(freq[5]==4&& freq[6]==6&& freq[7]==9&& freq[8]==18);
+  assert(string_equal(A[0],"dear")==true&&string_equal(A[1],"great")==true);
+  assert(string_equal(A[2],"mother")==true&&string_equal(A[3],"in")==true);
+  assert(string_equal(A[4],"love")==true&&string_equal(A[5],"his")==true);
+  assert(string_equal(A[6],"is")==true&&string_equal(A[7],"kai")==true);
+  assert(string_equal(A[8],"of")==true);
+
+  sort_by_freq(B, freq2, 3);
+  assert(freq2[0]==1&& freq2[1]==2&& freq2[2]==3);
+  assert(string_equal(B[0],"bdg")==true&&string_equal(B[1],"drf")==true);
+  assert(string_equal(B[2],"abd")==true);
+
+  println("All test pass");
+
+  return 0;
+}

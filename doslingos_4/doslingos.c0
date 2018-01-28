@@ -1,0 +1,104 @@
+//This function should return the number of occurrences of words in the file
+//corpus that do not appear in the array vocab, and should update the frequency
+//counts in freq.
+
+int count_vocab(string [] vocab, int [] freq, int v,string corpus, bool fast)
+//@requires v==\length(vocab) && v==\length(freq);
+//@requires is_sorted(vocab,0,v);
+{
+    bundle_t B = read_words(corpus);
+    int length = string_bundle_length(B);
+    string [] text_material = string_bundle_array(B);
+    int not_found =0;
+    int index;
+    if (fast==false)
+    {
+         for (int i=0;i<length;i++)
+         {
+             index = linsearch(text_material[i],vocab,v);
+             if (0<=index && index<v)
+             {
+                 freq[index]=freq[index]+1;
+             }
+             else{
+                 not_found=not_found+1;
+             }
+         }
+         return not_found;
+    }
+    else{
+        for (int i=0;i<length;i++)
+        {
+            index = binsearch(text_material[i],vocab,v);
+            if(0<=index && index<v)
+            {
+                freq[index]=freq[index]+1;
+            }
+            else{
+                not_found=not_found+1;
+            }
+        }
+        return not_found;
+    }
+
+}
+
+void merge(string [] vocab,int[] A, int lo, int mid, int hi)
+//@requires 0 <= lo && lo < mid && mid < hi && hi <= \length(A);
+//@requires \length(vocab)==\length(A);
+//@requires is_sorted_int(A, lo, mid) && is_sorted_int(A, mid, hi);
+//@ensures is_sorted_int(A, lo, hi);
+{
+  int[] B = alloc_array(int, hi-lo);
+  string [] S =alloc_array(string,hi-lo);
+  int i = lo;
+  int j = mid;
+  int k = 0;
+
+  while (i < mid && j < hi)
+  //@loop_invariant lo <= i && i <= mid;
+  //@loop_invariant mid <= j && j <= hi;
+  //@loop_invariant k == (i - lo) + (j - mid);
+  {
+     if (A[i] <= A[j]) {
+        B[k] = A[i];S[k] = vocab[i]; i++;
+     } else {
+        B[k] = A[j];S[k] = vocab[j]; j++;
+     }
+     k++;
+  }
+  //@assert i == mid || j == hi;
+  // Warning, loop invariants for these loops have been omitted!
+  while (i < mid) { B[k] = A[i];S[k] = vocab[i]; i++; k++; }
+  while (j < hi) { B[k] = A[j];S[k] = vocab[j]; j++; k++; }
+  for (k = 0; k < hi-lo; k++) { A[lo+k] = B[k];vocab[lo+k] = S[k];}
+}
+
+void sort(string [] vocab,int[] A, int lo, int hi)
+//@requires 0 <= lo && lo <= hi && hi <= \length(A);
+//@requires \length(vocab)==\length(A);
+//@ensures is_sorted_int(A, lo, hi);
+{
+  if (hi-lo <= 1) return;
+  int mid = lo + (hi-lo)/2;
+  sort(vocab, A, lo, mid); //@assert is_sorted_int(A, lo, mid);
+  sort(vocab, A, mid, hi); //@assert is_sorted_int(A, mid, hi);
+  merge(vocab, A, lo, mid, hi);
+  return;
+}
+
+
+//sort_by_freq functions
+void sort_by_freq(string [] vocab,int [] freq, int v)
+//@requires v==\length(vocab) && v==\length(freq);
+//@ensures is_sorted_int(freq,0,v);
+{
+    sort(vocab, freq, 0, v);
+}
+
+
+
+
+
+
+
