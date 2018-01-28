@@ -1,0 +1,242 @@
+/*
+ * Ropes
+ *
+ * 15-122 Principles of Imperative Computation
+ */
+
+#use <conio>
+#use <string>
+#use <util>
+
+/************************************/
+/* Interface (leave this in place!) */
+/************************************/
+
+// typedef _______ rope_t;
+typedef struct rope_node* rope_t;
+
+int    rope_length(rope_t R)
+  /*@ensures \result >= 0; @*/ ;
+rope_t rope_new(string s)
+  /*@ensures rope_length(\result) == string_length(s); @*/ ;
+rope_t rope_join(rope_t R, rope_t S)
+  /*@requires rope_length(R) <= int_max() - rope_length(S); @*/
+  /*@ensures rope_length(\result) == rope_length(R) + rope_length(S); @*/ ;
+string rope_tostring(rope_t R)
+  /*@ensures string_length(\result) == rope_length(R); @*/ ;
+char   rope_charat(rope_t R, int i)
+  /*@requires 0 <= i && i < rope_length(R); @*/ ;
+rope_t rope_sub(rope_t R, int lo, int hi)
+  /*@requires 0 <= lo && lo <= hi && hi <= rope_length(R); @*/
+  /*@ensures rope_length(\result) == hi - lo; @*/ ;
+void   rope_reduce(rope_t[] A, int n)
+  /*@requires n == \length(A); @*/ ;
+
+/***********************************/
+/* Implementation (edit this part) */
+/***********************************/
+typedef struct rope_node rope;
+struct rope_node{
+    int len;
+    rope* left;
+    rope* right;
+    string data;
+};
+bool is_rope(rope* R)
+{
+    if(R==NULL)
+        return true;
+    if(R!=NULL&&string_length(R->data)>0&&R->left==NULL&&R->right==NULL
+       &&R->len==string_length(R->data))
+        return true;
+    //Now dealing with non-leaf rope
+    return R!=NULL&&R->left!=NULL&&R->right!=NULL&&(R->len==R->left->len+R->right->len)
+           &&(R->left->len>0)&&(R->right->len>0)&&is_rope(R->left)&&is_rope(R->right)&&R->len>=2;
+
+}
+rope* rope_new(string s)
+//@ensures rope_length(\result) ==string_length(s);
+//@ensures is_rope(\result);
+{
+    //the string of "" is invalid leaf rope!!
+    if(string_equal(s,"")) return NULL;
+    rope* R = alloc(rope);
+    R->data = s;
+    R->len = string_length(s);
+    return R;
+}
+int rope_length(rope* R)
+//@requires is_rope(R);
+//@ensures \result>=0;
+{
+    if(R==NULL)
+        return 0;
+    else
+        return R->len;
+}
+rope* rope_join(rope* R, rope* S)
+//@requires is_rope(R)&&is_rope(S);
+//@requires rope_length(R)<=int_max()-rope_length(S);
+//@ensures rope_length(\result)==rope_length(R)+rope_length(S);
+//@ensures is_rope(\result);
+{
+    if(R==NULL)
+        return S;
+    if(S==NULL)
+        return R;
+    if(R!=NULL&&S!=NULL)
+    {
+        rope* new_R = alloc(rope);
+        new_R->len = R->len+S->len;
+        new_R->left = R;
+        new_R->right = S;
+        //new_R->data = NULL;
+        return new_R;
+    }
+    return NULL;
+}
+char rope_charat(rope* R, int i)
+//@requires is_rope(R);
+//@requires 0<=i && i<rope_length(R);
+{
+    //if(R==NULL)
+    //    return NULL;
+    if(R!=NULL&&R->left==NULL&&R->right==NULL)
+        return string_charat(R->data,i);
+    else
+    {
+        if(i<R->left->len)
+            return rope_charat(R->left,i);
+        else
+            return rope_charat(R->right,i-R->left->len);
+    }
+
+}
+
+string rope_tostring(rope* R)
+//@requires is_rope(R);
+//@ensures string_length(\result) == rope_length(R);
+{
+    if(R==NULL)
+        return "";
+    if(R!=NULL&&R->left==NULL&&R->right==NULL)
+        return R->data;
+    else
+    {
+        string s1 = rope_tostring(R->left);
+        string s2 = rope_tostring(R->right);
+        return string_join(s1,s2);
+    }
+
+}
+
+rope* rope_sub(rope* R, int lo, int hi)
+//@requires is_rope(R);
+//@requires 0<=lo && lo<=hi && hi<=rope_length(R);
+//@ensures is_rope(\result);
+//@ensures rope_length(\result) == hi-lo;
+{
+    if(R==NULL)
+        return NULL;
+    //when R is a leaf
+    else if(R!=NULL&&R->left==NULL&&R->right==NULL)
+    {
+        string s = R->data;
+        if(lo!=0||hi!=string_length(s))
+        {
+            string s_new = string_sub(s,lo,hi);
+            return rope_new(s_new);
+        }
+        else
+            return R;
+    }
+    //when R is not either NULL or leaf
+    else if(lo==0&&hi==R->len)
+        return R;
+    else if(hi<=R->left->len)
+        return rope_sub(R->left,lo,hi);
+    else if(lo>=R->left->len)
+        return rope_sub(R->right,lo-R->left->len,hi-R->left->len);
+    //if(lo<R->left->len&&hi>R->left->len)
+    else
+    {
+        return rope_join(rope_sub(R->left,lo,R->left->len),
+                         rope_sub(R->right,0,hi-R->left->len));
+    }
+
+}
+
+//Implement the client functions
+
+//key == string; value ==rope*;
+int hash(key x)
+//@requires x!=NULL;
+{
+    int hash_value = 0;
+    string* s = (string*)x;
+    for(int i=0;i<string_length(*s);i++)
+    {
+        hash_value = (hash_value+char_ord(string_charat(*s,i)))*1664525+
+                      1013904223;
+    }
+    return hash_value;
+}
+
+bool equiv(key x, key y)
+//@requires x!=NULL &&y!=NULL;
+{
+    string* a = (string*)x;
+    string* b = (string*)y;
+    return string_equal(*a,*b);
+}
+
+//Implementing the rope_reduce
+
+//helper function to conduct reduce
+rope* conduct_reduce(hdict_t H, rope* R)
+//@requires is_rope(R);
+{
+    if(R==NULL) return NULL;
+    else if(R!=NULL&&R->left==NULL&&R->right==NULL)
+    {
+        string* s = alloc(string);
+        *s = rope_tostring(R);
+        if(hdict_lookup(H,(void*)s)==NULL)
+            hdict_insert(H,(void*)s,(void*)R);
+        else
+            R=(rope*)hdict_lookup(H,(void*)s);
+        return R;
+    }
+    else
+    {
+        string* s2 = alloc(string);
+        *s2 = rope_tostring((R->left));
+        string* s3 = alloc(string);
+        *s3 = rope_tostring((R->right));
+
+        conduct_reduce(H,R->left);
+        conduct_reduce(H,R->right);
+        R->left = (rope*)hdict_lookup(H,(void*)s2);
+        R->right =(rope*)hdict_lookup(H,(void*)s3);
+
+        string* s4 = alloc(string);
+        *s4 = rope_tostring(R);
+        if(hdict_lookup(H,(void*)s4)==NULL)
+            hdict_insert(H,(void*)s4,(void*)R);
+        else
+            R=(rope*)hdict_lookup(H,(void*)s4);
+        return R;
+    }
+}
+
+void rope_reduce(rope* [] A, int n)
+//@requires n==\length(A);
+{
+    hdict_t H = hdict_new(n, &equiv, &hash);
+    for(int i=0;i<n;i++)
+    {
+        A[i]=conduct_reduce(H,A[i]);
+    }
+
+    return;
+}
