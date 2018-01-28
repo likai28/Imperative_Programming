@@ -1,0 +1,322 @@
+/*
+ * Augment doubly linked lists with row and column information.
+ *
+ * 15-122 Principles of Imperative Computation */
+
+/*** Interface ***/
+
+typedef struct editor_header editor;
+struct editor_header {
+  tbuf* buffer;
+  int row;
+  int col;
+};
+
+bool is_editor(editor* E);
+
+editor* editor_new();                  /* Creates a new, empty text buffer */
+void editor_forward(editor* E);        /* Moves the cursor forward (right) */
+void editor_backward(editor* E);       /* Moves the cursor backward (left) */
+void editor_insert(editor* E, char c); /* Insert a character before cursor */
+void editor_delete(editor* B);         /* Remove character before cursor   */
+
+/*** Implementation ***/
+bool is_editor(editor* B)
+{
+    return B!=NULL&&is_tbuf(B->buffer)
+    &&(tbuf_row(B->buffer)==B->row)
+    &&(tbuf_col(B->buffer)==B->col);
+}
+editor* editor_new()
+//@ensures is_editor(\result);
+{
+    editor* E = alloc(editor);
+    E->buffer = tbuf_new();
+    E->row =1;
+    E->col =0;
+    return E;
+}
+void editor_forward(editor* B)
+//@requires is_editor(B);
+//@ensures is_editor(B);
+{
+
+    if(B->buffer->cursor!=B->buffer->end)
+    {
+        if (B->buffer->cursor->data=='\n')
+        {
+            tbuf_forward(B->buffer);
+            B->col=0;
+            B->row=B->row+1;
+        }
+        else
+        {
+            tbuf_forward(B->buffer);
+            B->col=B->col+1;
+        }
+    }
+
+}
+
+void editor_backward(editor* B)
+//@requires is_editor(B);
+//@ensures is_editor(B);
+{
+    if(B->buffer->cursor->prev!=B->buffer->start)
+    {
+        if(B->buffer->cursor->prev->data!='\n')
+        {
+            tbuf_backward(B->buffer);
+            B->col = B->col-1;
+        }
+        else
+        {
+            tbuf_backward(B->buffer);
+            B->col= tbuf_col(B->buffer);
+            B->row =B->row-1;
+        }
+
+    }
+
+}
+void editor_delete(editor* B)
+//@requires is_editor(B);
+//@ensures is_editor(B);
+{
+    char c=' ';
+    if(B->buffer->cursor->prev!=B->buffer->start)
+    {
+        if(B->buffer->cursor->prev->data=='\n')
+        {
+            c= tbuf_delete(B->buffer);
+            B->row =B->row-1;
+            B->col = tbuf_col(B->buffer);
+        }
+        else
+        {
+           c = tbuf_delete(B->buffer);
+           B->col = B->col-1;
+        }
+
+    }
+
+}
+void editor_insert(editor* B, char c)
+//@requires is_editor(B);
+//@ensures is_editor(B);
+{
+    if (c=='\n')
+    {
+        tbuf_insert(B->buffer,c);
+        B->col =0;
+        B->row= B->row+1;
+    }
+    else
+    {
+        tbuf_insert(B->buffer,c);
+        B->col=B->col+1;
+    }
+
+}
+/*
+void editor_up(editor* B)
+//@requires is_editor(B);
+//@ensures is_editor(B);
+{
+    if(B->row==1) return;
+    else
+    {
+        dll* n1 = B->buffer->cursor;
+        dll* n2 = B->buffer->cursor;
+        int count1=0;
+        int count2=0;
+        while(n1->prev->data!='\n')
+        {
+            n1=n1->prev;
+            count1=count1+1;
+        }
+        while(n2->next->data!='\n')
+        {
+            n2=n2->next;
+            count2=count2+1;
+        }
+        int length=count1+count2+1+1;
+        int length_prev =0;
+        while(n1->prev!=B->buffer->start&&n1->prev->data!='\n')
+        {
+            n1 = n1->prev;
+            length_prev=length_prev+1;
+        }
+        length_prev=length_prev+2;
+        if(length_prev<=length)
+        {
+            B->row = B->row-1;
+            B->col = length_prev-1;
+            for(int k=0;k<count1+1;k++)
+            {
+                editor_backward(B);
+            }
+        }
+        else
+        {
+            B->row = B->row-1;
+            for(int p=0;p<length_prev;p++)
+            {
+                editor_backward(B);
+            }
+        }
+    }
+
+}
+void editor_down(editor* B)
+//@requires is_editor(B);
+//@ensures is_editor(B);
+{
+    dll* temp = B->buffer->cursor;
+    assert(temp!=NULL);
+    while(B->buffer->cursor->data!='\n')
+    {
+        if(B->buffer->cursor==B->buffer->end) return;
+        B->buffer->cursor = B->buffer->cursor->next;
+        assert(B->buffer->cursor!=NULL);
+
+    }
+    assert(temp!=NULL);
+
+    B->buffer->cursor=temp;
+    assert(B->buffer->cursor!=NULL);
+    dll* n1=B->buffer->cursor;
+    dll* n2=B->buffer->cursor;
+    assert(n1!=NULL&&n2!=NULL);
+    int count1=0;
+    int count2=0;
+    assert(n1->prev!=NULL);
+    while (n1->prev->data!='\n')
+    {
+        n1=n1->prev;
+        count1=count1+1;
+        assert(n1!=NULL);
+    }
+    assert(n2->next!=NULL);
+    while (n2->next->data!='\n')
+    {
+        n2=n2->next;
+        count2=count2+1;
+        assert(n2!=NULL);
+    }
+    int length =count1+count2+1+1;
+    int length_next =0;
+    assert(n2!=NULL);
+    while(n2->next!=B->buffer->end&&n2->data!='\n')
+    {
+        n2=n2->next;
+        length_next = length_next+1;
+        assert(n2->next!=NULL);
+    }
+    length_next=length_next-1;
+    if(length_next<=length)
+    {
+        B->row=B->row+1;
+        B->col=length_next-1;
+        for(int k=0;k<count2+1+length_next;k++)
+        {
+            editor_forward(B);
+        }
+    }
+    else
+    {
+        B->row=B->row+1;
+        for(int p=0;p<length;p++)
+        {
+            editor_forward(B);
+        }
+    }
+}
+*/
+void editor_up(editor* B)
+{
+    if(B->row==1) return;
+    else
+    {
+        int record_col = B->col;
+        int record_row = B->row;
+        editor_backward(B);
+        while(true)
+        {
+            if(B->row==record_row-1&&B->col<=record_col)return;
+            editor_backward(B);
+        }
+    }
+}
+
+void editor_down(editor* B)
+{
+    dll* temp = B->buffer->cursor;
+    while(temp->data!='\n')
+    {
+        if(temp==B->buffer->end) return;
+        else
+        {
+            temp = temp->next;
+        }
+    }
+
+    int record_col = B->col;
+    int record_row = B->row;
+    /*editor_forward(B);
+    while(true)
+    {
+        if(B->row==record_row+1&&B->col<=record_col) return;
+        editor_forward(B);
+    }
+    */
+    dll* temp2 = B->buffer->cursor;
+    dll* temp3 = B->buffer->cursor;
+    int length = 0;
+    int length_next =0;
+    while(temp2->prev!=B->buffer->start&&temp2->prev->data!='\n')
+    {
+        temp2 = temp2->prev;
+        length = length+1;
+    }
+    while(temp3->data!='\n'&&temp3->next!=B->buffer->end)
+    {
+        temp3 = temp3->next;
+        length = length+1;
+    }
+    length = length+1;
+    assert(temp3->data=='\n');
+    temp3 = temp3->next;
+    while(temp3->data!='\n'&&temp3->next!=B->buffer->end)
+    {
+        length_next = length_next+1;
+        temp3 = temp3->next;
+    }
+    length_next = length_next+1;
+    dll* p = B->buffer->cursor;
+    if (length_next<=length)
+    {
+        while(true)
+        {
+            if(B->row==record_row+1&&(B->buffer->cursor->data=='\n'
+            ||B->buffer->cursor==B->buffer->end)) return;
+            editor_forward(B);
+        }
+    }
+    else
+    {
+        while(true)
+        {
+            if(B->row==record_row+1&&B->col==record_col) return;
+            editor_forward(B);
+        }
+    }
+}
+
+
+
+
+
+
+
+

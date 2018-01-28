@@ -1,0 +1,178 @@
+/*
+ * Text buffers as doubly linked lists.
+ *
+ * 15-122 Principles of Imperative Computation */
+
+/*** Interface ***/
+
+typedef struct dll_node dll;
+struct dll_node {
+  char data;
+  dll* next;
+  dll* prev;
+};
+
+typedef struct tbuf_header tbuf;
+struct tbuf_header {
+  dll* start;  /* the fist node of the list (on the left)  */
+  dll* cursor; /* the position where the cursor is displayed */
+  dll* end;    /* the last node of the list (on the right) */
+};
+
+bool is_tbuf(tbuf* B);
+bool is_dll_segment(dll* a, dll* b);
+bool mirror_connect(dll*a, dll* b);
+
+bool tbuf_at_left(tbuf* B);            /* Returns true if the cursor       */
+                                       /* is in leftmost position          */
+bool tbuf_at_right(tbuf* B);           /* Returns true if the cursor       */
+                                       /* is in rightmost position         */
+
+tbuf* tbuf_new();                      /* Creates a new, empty text buffer */
+void tbuf_forward(tbuf* B);            /* Moves the cursor forward (right) */
+void tbuf_backward(tbuf* B);           /* Moves the cursor backward (left) */
+void tbuf_insert(tbuf* B, char c);     /* Insert a character before cursor */
+char tbuf_delete(tbuf* B);             /* Remove character before cursor   */
+                                       /* (and returns the deleted char)   */
+
+int tbuf_row(tbuf* B);                 /* Returns the row of the cursor    */
+int tbuf_col(tbuf* B);                 /* Returns the column of the cursor */
+
+/*** Implementation ***/
+
+bool is_tbuf(tbuf* B)
+{
+    if (B==NULL||B->start==NULL||B->end==NULL||B->cursor==NULL
+        ||B->start==B->end||B->start==B->cursor) return false;
+    else
+    {
+        bool check_cursor1 = is_dll_segment(B->start,B->cursor);
+        bool check_cursor2 = is_dll_segment(B->cursor,B->end);
+        return is_dll_segment(B->start,B->end)
+               &&mirror_connect(B->start,B->end)
+               &&check_cursor1&&check_cursor2;
+    }
+}
+
+bool is_dll_segment(dll* a, dll* b)
+{
+    dll* s =a;
+    dll* e =b;
+    bool is_connected = false;
+    while(s!=NULL&&e!=NULL)
+    {
+        //if (s==e||(s->next==e&&e->prev==s)) mirror_connect =true;
+        if(s==b && e==a) is_connected = true;
+        s = s->next;
+        e = e->prev;
+    }
+    return is_connected;
+}
+
+bool mirror_connect(dll* a, dll* b)
+{
+    dll* s =a;
+    dll* e =b;
+    while(e->prev!=a)
+    {
+        while(s->next!=e)
+        {
+            s=s->next;
+        }
+        if(e->prev!=s) return false;
+        s=a;
+        e=e->prev;
+    }
+    return true;
+}
+
+bool tbuf_at_left(tbuf* B)
+//@requires is_tbuf(B);
+//@ensures is_tbuf(B);
+{
+    return B->cursor == B->start->next;
+}
+
+bool tbuf_at_right(tbuf* B)
+//@requires is_tbuf(B);
+//@ensures is_tbuf(B);
+{
+    return B->cursor == B->end;
+}
+tbuf* tbuf_new()
+//@ensures is_tbuf(\result);
+{
+    tbuf* text_buffer = alloc(tbuf);
+    text_buffer->start = alloc(dll);
+    text_buffer->end = alloc(dll);
+    text_buffer->cursor =text_buffer->end;
+    text_buffer->start->next =text_buffer->end;
+    text_buffer->end->prev = text_buffer->start;
+    return text_buffer;
+}
+
+void tbuf_forward(tbuf* B)
+//@requires is_tbuf(B);
+//@requires !tbuf_at_right(B);
+//@ensures is_tbuf(B);
+{
+    B->cursor=B->cursor->next;
+}
+void tbuf_backward(tbuf* B)
+//@requires is_tbuf(B);
+//@requires !tbuf_at_left(B);
+//@ensures is_tbuf(B);
+{
+    B->cursor=B->cursor->prev;
+}
+char tbuf_delete(tbuf* B)
+//@requires is_tbuf(B);
+//@requires !tbuf_at_left(B);
+//@ensures is_tbuf(B);
+{
+    dll* temp = B->cursor->prev;
+    B->cursor->prev=B->cursor->prev->prev;
+    temp->prev->next =B->cursor;
+    return temp->data;
+}
+
+void tbuf_insert(tbuf* B,char c)
+//@requires is_tbuf(B);
+//@ensures is_tbuf(B);
+{
+    dll* node = alloc(dll);
+    node->next = B->cursor;
+    node->prev = B->cursor->prev;
+    node->prev->next = node;
+    B->cursor->prev = node;
+    node->data = c;
+
+}
+
+int tbuf_row(tbuf* B)
+//@requires is_tbuf(B);
+//@ensures is_tbuf(B);
+{
+    dll* temp =B->cursor;
+    int row =1;
+
+    while(temp!=B->start->next)
+    {
+        temp = temp->prev;
+        if(temp->data=='\n') row=row+1;
+    }
+    return row;
+}
+int tbuf_col(tbuf* B)
+//@requires is_tbuf(B);
+//@ensures is_tbuf(B);
+{
+    dll* temp = B->cursor;
+    int column =0;
+    while(temp->prev->data!='\n'&& temp->prev!=B->start)
+    {
+        temp = temp->prev;
+        column =column+1;
+    }
+    return column;
+}
