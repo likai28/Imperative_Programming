@@ -1,0 +1,87 @@
+#use <util>
+#use <conio>
+
+int main(){
+//Run some edge cases(check for contract errors only)
+
+pixel p=make_pixel(0xFF,0xFF,0xFF,0xFF);
+get_alpha(p);
+get_red(p);
+get_green(p);
+get_blue(p);
+
+//Test some regular cases(check for contract errors& exploits)
+
+pixel p1=make_pixel(0xFF,0xF0,0xF1,0xF2);
+assert(get_red(p1)==0xF0);
+assert(get_green(p1)==0xF1);
+assert(get_blue(p1)==0xF2);
+assert(get_alpha(p1)==0xFF);
+
+pixel p2=make_pixel(0x00,0xFF,0xFF,0xFF);
+assert(get_alpha(p2)==0x00);
+assert(get_red(p2)==0xFF);
+assert(get_green(p2)==0xFF);
+assert(get_blue(p2)==0xFF);
+
+pixel p3=make_pixel(0x0F,0x00,0x00,0x00);
+assert(get_alpha(p3)==0x0F);
+assert(get_red(p3)==0x00);
+assert(get_green(p3)==0x00);
+assert(get_blue(p3)==0x00);
+
+pixel p4=make_pixel(0xFF,0x00,0x00,0x00);
+assert(get_alpha(p4)==0xFF);
+pixel p5=make_pixel(0x7F,0x00,0xFF,0x56);
+assert(get_red(p5)==0x00);
+pixel p6=make_pixel(0x00,0x0F,0x00,0x00);
+assert(get_red(p6)==0x0F);
+pixel p7=make_pixel(0xF7,0xFF,0x00,0x00);
+assert(get_red(p7)==0xFF);
+
+pixel p8=make_pixel(0x02,0x0F,0x00,0xFF);
+assert(get_green(p8)==0x00);
+pixel p9=make_pixel(0x00,0x00,0x0F,0x00);
+assert(get_green(p9)==0x0F);
+pixel p10=make_pixel(0x00,0x07,0xFF,0x00);
+assert(get_green(p10)==0xFF);
+pixel p11=make_pixel(0x00,0x00,0x0F,0xFF);
+assert(get_blue(p11)==0xFF);
+
+//pixel p=make_pixel(0,0,0,255);
+//assert(get_alpha(p)==0);
+//assert(get_red(p)==0);
+//assert(get_green(p)==0);
+//assert(get_blue(p)==255);
+
+//p=make_pixel(0,0,255,0);
+//assert(get_alpha(p)==0);
+//assert(get_red(p)==0);
+//assert(get_green(p)==255);
+//assert(get_blue(p)==0);
+
+//p=make_pixel(0,255,0,0);
+//assert(get_alpha(p)==0);
+//assert(get_red(p)==255);
+//assert(get_green(p)==0);
+//assert(get_blue(p)==0);
+
+//p=make_pixel(255,0,0,0);
+//assert(get_alpha(p)==255);
+//assert(get_red(p)==0);
+//assert(get_green(p)==0);
+//assert(get_blue(p)==0);
+
+//p=make_pixel(255,255,255,255);
+//assert(get_alpha(p)==255);
+//assert(get_red(p)==255);
+//assert(get_green(p)==255);
+//assert(get_blue(p)==255);
+
+
+
+
+println("All tests passed!");
+return 0;
+
+}

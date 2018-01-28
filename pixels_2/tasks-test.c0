@@ -1,0 +1,17 @@
+/* Testing hw1.c0 */
+
+// Uncomment one test in each group
+
+#use <conio>
+
+int main() {
+  test_remove_red();
+//  test_remove_green();
+//  test_remove_blue();
+
+  test_quantize();
+
+  test_count_zeroes();
+  println("All tests passed!");
+  return 0;
+}
